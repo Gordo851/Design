@@ -89,7 +89,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     robot.say_text("Got it").wait_for_completed()
 
     # Cozmo returns cube to user
-    action = robot.go_to_object(origin, 70)
+    action = robot.go_to_object(origin,  distance_mm(70))
     action.wait_for_completed()
     robot.say_text("Is this one the right one?").wait_for_completed()
 
