@@ -90,7 +90,10 @@ def cozmo_program(robot: cozmo.robot.Robot):
         finally:
             look_around.stop()
 
+
+
     # on boot up show loading screen
+
 
     # define light colours
     red_light = cozmo.lights.Light(cozmo.lights.Color(rgb=(255, 0, 0)))
@@ -137,9 +140,10 @@ def cozmo_program(robot: cozmo.robot.Robot):
     look_around.stop()
     
     # cozmo goes and gets cube
-    action = robot.pickup_object(yellow_cube, num_retries=3)
-    action.wait_for_completed
+    robot.pickup_object(yellow_cube, num_retries=3).wait_for_completed
+    
     robot.say_text("Got it").wait_for_completed()
+
 
     # Cozmo returns cube to user
     robot.go_to_object(charger,  distance_mm(100)).wait_for_completed()
@@ -168,5 +172,6 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # cozmo returns to cradle and sleeps
 
-
-cozmo.run_program(cozmo_program, use_viewer=True)
+"""
+cozmo.connect(run)
+cozmo.run_program(cozmo_program)
