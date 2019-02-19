@@ -5,18 +5,35 @@ Created on 17 Feb 2019
 '''
 
 import cozmo
-import asyncio
 from tkinter import *
 
 from cozmo.util import degrees, distance_mm, speed_mmps
 
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, Charger
 import time
-from cozmo import robot
 
 global red_cube
 global yellow_cube
 global blue_cube
+
+def yes_command(robot: cozmo.robot.Robot):
+    robot.move_lift(-5)
+    robot.drive_straight(-50, 50)
+
+def no_command(robot: cozmo.robot.Robot):
+    robot.drive_straight(-50, 50)
+    robot.move_lift(-5)
+    robot.say_text("Select something else and I'll get it then.")
+
+def createConfirmationGUI():
+    confirmationWindow = Tk()
+    confirmationWindow.geometry("300x100")
+    buttonYES = Button(confirmationWindow, text="YES", bg="green", command=yes_command, height = 4, width = 17)
+    buttonNO = Button(confirmationWindow, text="NO", bg="red", command=no_command, height = 4, width = 17)
+    buttonNO.grid(row = 2, column = 1)
+    buttonYES.grid(row = 2, column = 2)
+    confirmationWindow.mainloop()
+
 # create the code for interaction
 def find_charger(robot: cozmo.robot.Robot):
     # create an origin point where Cozmo's charger is. When he picks up objects he will return here.
@@ -25,12 +42,12 @@ def find_charger(robot: cozmo.robot.Robot):
         robot.DriveOffChargerContacts.wait_for_completed()
     if not robot.is_on_charger:
         robot.drive_straight(distance_mm(100), speed_mmps(50)).wait_for_completed()
-        robot.move_lift(-3)
+        robot.move_lift(-3).wait_for_completed()
         robot.turn_in_place(degrees(180)).wait_for_completed()
         robot.set_head_angle(degrees(0)).wait_for_completed()
         robot.turn_in_place(degrees(180)).wait_for_completed()
         time.sleep(0.5)
-        robot.SayText("Ready")
+        robot.SayText("Ready").wait_for_completed()
         
 def light_cubes(robot: cozmo.robot.Robot):
     # define light colours
@@ -69,20 +86,12 @@ def go_get_cube(robot: cozmo.robot.Robot, cube_selected):
 
 def final_confirmation_of_cube(robot: cozmo.robot.Robot, cube_selected):
     # Object is confirmed
-    confirmation1 = input("Is this the right one? Y/N: ")
-    if confirmation1 == "Y":
-        robot.say_text("Yay").wait_for_completed()
-        robot.place_object_on_ground_here(cube_selected).wait_for_completed()
-    else:
-        robot.say_text("Well you're getting it anyway.")
-
-    
-    # get dat fist bump
-    robot.say_text("Do you want me to fetch anything else")
+    robot.say_text("Is this the right one?")
+    createConfirmationGUI()
 
     # user says no
 
-    # cozmo returns to base
+
 
     # wait for five minutes of inactivity
 
@@ -112,42 +121,53 @@ def red_clicked():
     global cube_picked
     cube_picked = "red_cube"
     print("red")
-    label1.config(text=cube_picked)
+    label1.config(text="selected TV remote (red)")
 
 
 def yellow_clicked():
     global cube_picked
     cube_picked = "yellow_cube"
     print("yellow")
-    label1.config(text=cube_picked)
+    label1.config(text="selected phone (yellow)")
+    
 
 
 def blue_clicked():
     global cube_picked
     cube_picked = "blue_cube"
     print("blue")
-    label1.config(text=cube_picked)
-
+    label1.config(text="selected medication (blue)")
 
 def confirm_clicked():
     cube_confirmed = cube_picked
     print(cube_confirmed)
-    cozmo_stuff(cozmo.robot.Robot, cube_confirmed)
 
 def create_buttons():
-    button1 = Button(root_window, text="      ", bg="yellow", command=yellow_clicked)
-    button2 = Button(root_window, text="      ", bg="red", command=red_clicked)
-    button3 = Button(root_window, text="      ", bg="blue", command=blue_clicked)
-    button4 = Button(root_window, text="Confirm?", command=confirm_clicked)
+    button1 = Button(root_window, text="", bg="yellow", command=yellow_clicked, height = 4, width = 17)
+    button2 = Button(root_window, text="", bg="red", command=red_clicked, height = 4, width = 17)
+    button3 = Button(root_window, text="", bg="blue", command=blue_clicked, height = 4, width = 17) 
+    button5 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button6 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button7 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button8 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button9 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button10 = Button(root_window, text="", bg="grey", height = 4, width = 17)
+    button4 = Button(root_window, text="confirm?", command=confirm_clicked, height = 4, width = 17)
     global label1
-    label1 = Label(root_window, text="Nothing selected yet.")
+    label1 = Label(root_window, text="Nothing selected yet.",height = 4, width = 25)
 
 
-    button1.grid(row=1, column=2)
-    button2.grid(row=3, column=2)
-    button3.grid(row=5, column=2)
-    label1.grid(row=3, column=4)
-    button4.grid(row=3, column=6)  
+    button1.grid(row = 1, column = 1)
+    button2.grid(row = 1, column = 2)
+    button3.grid(row = 1, column = 3)
+    button5.grid(row = 2, column = 1)
+    button6.grid(row = 2, column = 2)
+    button7.grid(row = 2, column = 3)
+    button8.grid(row = 3, column = 1)
+    button9.grid(row = 3, column = 2)
+    button10.grid(row = 3, column = 3)
+    label1.grid(row = 2, column = 4)
+    button4.grid(row = 2, column = 5)  
 
 def cozmo_program(robot: cozmo.robot.Robot):
     robot.SayText("Getting ready")
@@ -164,26 +184,7 @@ def run_Gui():
     root_window.mainloop()
 
 run_Gui()
-"""
-    robot.say_text("Ready").wait_for_completed()
-    
-    # user selects which cube they want
-    cube_selected_input = input("Which cube do you want. Options: red_cube, yellow_cube, blue_cube: ")
-    cube_selected = cube_selected_input
-    print(cube_selected)
-    robot.say_text("press").wait_for_completed()
 
-    # Wait for conformation
-    confirmation = input("Are you sure Y/N: ")
-    if confirmation == "Y":
-        robot.say_text("OK.").wait_for_completed()
-        robot.move_lift(-3)
-        robot.set_head_angle(degrees(0)).wait_for_completed()
-        
-    else:
-        print("Fine")
-        cube_wanted = ""
-"""
 
 
 
