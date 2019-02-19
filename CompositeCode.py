@@ -8,7 +8,7 @@ import cozmo
 import asyncio
 from tkinter import *
 
-from cozmo.util import degrees, distance_mm, radians, speed_mmps, Vector2
+from cozmo.util import degrees, distance_mm, speed_mmps
 
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, Charger
 import time
@@ -17,14 +17,11 @@ from cozmo import robot
 global red_cube
 global yellow_cube
 global blue_cube
-global robot 
-robot = cozmo.robot.Robot
-
 # create the code for interaction
-def find_charger(robot):
+def find_charger(robot: cozmo.robot.Robot):
     # create an origin point where Cozmo's charger is. When he picks up objects he will return here.
     # If the robot was on the charger, drive them forward and clear of the charger
-
+    robot.SayText("Getting ready")
     if robot.is_on_charger:
         robot.DriveOffChargerContacts.wait_for_completed()
     if not robot.is_on_charger:
@@ -35,7 +32,7 @@ def find_charger(robot):
         robot.turn_in_place(degrees(180)).wait_for_completed()
         time.sleep(0.5)
         
-def light_cubes(robot):
+def light_cubes(robot: cozmo.robot.Robot):
     # define light colours
     red_light = cozmo.lights.Light(cozmo.lights.Color(rgb=(255, 0, 0)))
     blue_light = cozmo.lights.Light(cozmo.lights.Color(rgb=(0, 0, 255)))
@@ -50,31 +47,32 @@ def light_cubes(robot):
     blue_cube.set_lights(blue_light)
     yellow_cube.set_lights(yellow__light)
     
-def go_get_cube(robot, cube_selected):
+def go_get_cube(robot: cozmo.robot.Robot, cube_selected):
     # look around and try to find a cube
+    x = 0
     cubes = robot.world.wait_until_observe_num_objects(num=3, object_type=cozmo.objects.LightCube, timeout=60)
     if len(cubes) < 3:
         look_around = robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
-        look_around.stop()
     
     # cozmo goes and gets cube
     if len(cubes) == 3:
-        robot.dock_with_cube(cube_selected, approach_angle=cozmo.util.degrees(0), num_retries=2).wait_for_completed
+        look_around.stop()
+        robot.abort_all_actions()
+        robot.pickup_object(cube_selected, num_retries=3).wait_for_completed()
+        x + 1
     
+    if x == 1:
+        # Cozmo returns cube to user
+        robot.go_to_object(Charger,  distance_mm(100)).wait_for_completed()
+        robot.say_text("Is this the right object?").wait_for_completed()
+        final_confirmation_of_cube(robot, cube_selected)
 
-    # Cozmo returns cube to user
-    robot.go_to_object(Charger,  distance_mm(100)).wait_for_completed()
-    robot.say_text("Is ?").wait_for_completed()
-    action = robot.place_object_on_ground_here(red_cube).wait_for_completed()
-    print("got action", action)
-    result = action.wait_for_completed(timeout=30)
-    print("got action result", result)
-    
-
+def final_confirmation_of_cube(robot: cozmo.robot.Robot, cube_selected):
     # Object is confirmed
     confirmation1 = input("Is this the right one? Y/N: ")
     if confirmation1 == "Y":
-        robot.say_text("Yay")
+        robot.say_text("Yay").wait_for_completed()
+        robot.place_object_on_ground_here(cube_selected).wait_for_completed()
     else:
         robot.say_text("Well you're getting it anyway.")
 
@@ -93,9 +91,8 @@ def go_get_cube(robot, cube_selected):
     # cozmo returns to cradle and sleeps
 
 
-def cozmo_program(robot, cube_selected):
+def cozmo_program(robot: cozmo.robot.Robot, cube_selected):
     find_charger(robot)
-    light_cubes(robot)
     go_get_cube(robot, cube_selected)
     cozmo.run_program(cozmo_program)
 
@@ -136,7 +133,7 @@ def blue_clicked():
 def confirm_clicked():
     cube_confirmed = cube_picked
     print(cube_confirmed)
-    cozmo_program(robot, cube_confirmed)
+    cozmo_program(cube_confirmed)
 
 def create_buttons():
     button1 = Button(root_window, text="      ", bg="yellow", command=yellow_clicked)
@@ -151,9 +148,10 @@ def create_buttons():
     button2.grid(row=3, column=2)
     button3.grid(row=5, column=2)
     label1.grid(row=3, column=4)
-    button4.grid(row=3, column=6)
-
+    button4.grid(row=3, column=6)  
+    
 def run_Gui():
+    light_cubes(cozmo.robot.Robot)
     createGui()
     create_buttons()
     red_clicked()
