@@ -21,7 +21,6 @@ global blue_cube
 def find_charger(robot: cozmo.robot.Robot):
     # create an origin point where Cozmo's charger is. When he picks up objects he will return here.
     # If the robot was on the charger, drive them forward and clear of the charger
-    robot.SayText("Getting ready")
     if robot.is_on_charger:
         robot.DriveOffChargerContacts.wait_for_completed()
     if not robot.is_on_charger:
@@ -31,6 +30,7 @@ def find_charger(robot: cozmo.robot.Robot):
         robot.set_head_angle(degrees(0)).wait_for_completed()
         robot.turn_in_place(degrees(180)).wait_for_completed()
         time.sleep(0.5)
+        robot.SayText("Ready")
         
 def light_cubes(robot: cozmo.robot.Robot):
     # define light colours
@@ -91,10 +91,9 @@ def final_confirmation_of_cube(robot: cozmo.robot.Robot, cube_selected):
     # cozmo returns to cradle and sleeps
 
 
-def cozmo_program(robot: cozmo.robot.Robot, cube_selected):
+def cozmo_stuff(robot: cozmo.robot.Robot, cube_selected):
     find_charger(robot)
     go_get_cube(robot, cube_selected)
-    cozmo.run_program(cozmo_program)
 
 
 def createGui():
@@ -133,7 +132,7 @@ def blue_clicked():
 def confirm_clicked():
     cube_confirmed = cube_picked
     print(cube_confirmed)
-    cozmo_program(cube_confirmed)
+    cozmo_stuff(cozmo.robot.Robot, cube_confirmed)
 
 def create_buttons():
     button1 = Button(root_window, text="      ", bg="yellow", command=yellow_clicked)
@@ -149,8 +148,12 @@ def create_buttons():
     button3.grid(row=5, column=2)
     label1.grid(row=3, column=4)
     button4.grid(row=3, column=6)  
+
+def cozmo_program(robot: cozmo.robot.Robot):
+    robot.SayText("Getting ready")
     
 def run_Gui():
+    cozmo.run_program(cozmo_program)
     light_cubes(cozmo.robot.Robot)
     createGui()
     create_buttons()
