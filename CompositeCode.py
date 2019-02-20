@@ -16,24 +16,6 @@ global red_cube
 global yellow_cube
 global blue_cube
 
-def yes_command(robot: cozmo.robot.Robot):
-    robot.move_lift(-5)
-    robot.drive_straight(-50, 50)
-
-def no_command(robot: cozmo.robot.Robot):
-    robot.drive_straight(-50, 50)
-    robot.move_lift(-5)
-    robot.say_text("Select something else and I'll get it then.")
-
-def createConfirmationGUI():
-    confirmationWindow = Tk()
-    confirmationWindow.geometry("300x100")
-    buttonYES = Button(confirmationWindow, text="YES", bg="green", command=yes_command, height = 4, width = 17)
-    buttonNO = Button(confirmationWindow, text="NO", bg="red", command=no_command, height = 4, width = 17)
-    buttonNO.grid(row = 2, column = 1)
-    buttonYES.grid(row = 2, column = 2)
-    confirmationWindow.mainloop()
-
 # create the code for interaction
 def find_charger(robot: cozmo.robot.Robot):
     # create an origin point where Cozmo's charger is. When he picks up objects he will return here.
@@ -80,29 +62,44 @@ def go_get_cube(robot: cozmo.robot.Robot, cube_selected):
     
     if x == 1:
         # Cozmo returns cube to user
+        robot.abort_all_actions()
         robot.go_to_object(Charger,  distance_mm(100)).wait_for_completed()
         robot.say_text("Is this the right object?").wait_for_completed()
-        final_confirmation_of_cube(robot, cube_selected)
+        final_confirmation_of_cube(robot)
 
-def final_confirmation_of_cube(robot: cozmo.robot.Robot, cube_selected):
+def final_confirmation_of_cube(robot: cozmo.robot.Robot):
     # Object is confirmed
+    robot.abort_all_actions()
     robot.say_text("Is this the right one?")
     createConfirmationGUI()
 
-    # user says no
+def yes_command(robot: cozmo.robot.Robot):
+    robot.abort_all_actions()
+    robot.move_lift(-5).wait_for_completed()
+    robot.say_text("Horray", play_excited_animation=True).wait_for_completed()
+    robot.drive_straight(distance_mm(-200), speed_mmps(50)).wait_for_completed()
 
+def no_command(robot: cozmo.robot.Robot):
+    robot.abort_all_actions()
+    robot.drive_straight(distance_mm(-200), speed_mmps(50)).wait_for_completed()
+    robot.move_lift(-5).wait_for_completed()
+    robot.say_text("Select something else and I'll get it.").wait_for_completed()
 
-
-    # wait for five minutes of inactivity
-
-    robot.say_text("I'm going to have a nap now, let me know if you need anything?")
-
-    # cozmo returns to cradle and sleeps
-
+def createConfirmationGUI():
+    confirmationWindow = Tk()
+    confirmationWindow.geometry("300x100")
+    buttonYES = Button(confirmationWindow, text="YES", bg="green", command=yes_command, height = 4, width = 17)
+    buttonNO = Button(confirmationWindow, text="NO", bg="red", command=no_command, height = 4, width = 17)
+    buttonNO.grid(row = 2, column = 1)
+    buttonYES.grid(row = 2, column = 2)
+    confirmationWindow.mainloop()
 
 def cozmo_stuff(robot: cozmo.robot.Robot, cube_selected):
     find_charger(robot)
     go_get_cube(robot, cube_selected)
+
+def dropoff_point(robot: cozmo.robot.Robot):
+    robot.abort_all_actions()
 
 
 def createGui():
@@ -130,8 +127,6 @@ def yellow_clicked():
     print("yellow")
     label1.config(text="selected phone (yellow)")
     
-
-
 def blue_clicked():
     global cube_picked
     cube_picked = "blue_cube"
@@ -184,9 +179,3 @@ def run_Gui():
     root_window.mainloop()
 
 run_Gui()
-
-
-
-
-      
-    
